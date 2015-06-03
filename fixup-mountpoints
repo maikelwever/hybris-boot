@@ -27,6 +27,27 @@ case "$DEVICE" in
             "$@"
         ;;
 
+    "huashan")
+        sed -i \
+            -e 's block/platform/msm_sdcc.1/by-name/Boot mmcblk0p12 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/Boot2 mmcblk0p3 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/Cache mmcblk0p14 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/FOTAKernel mmcblk0p11 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/Kernel mmcblk0p4 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/LTALabel mmcblk0p12 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/System mmcblk0p13 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/TA mmcblk0p1 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/TZ mmcblk0p5 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/Userdata mmcblk0p15 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/apps_log mmcblk0p10 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/fsg mmcblk0p8 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/modemst1 mmcblk0p6 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/modemst2 mmcblk0p7 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/ramdump mmcblk0p9 ' \
+            -e 's block/platform/msm_sdcc.3/mmc_host/mmc1 mmcblk1p1 ' \
+            "$@"
+        ;;
+
     "grouper")
         sed -i \
             -e 's block/platform/sdhci-tegra.3/by-name/APP mmcblk0p3 ' \
