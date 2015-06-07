@@ -113,6 +113,24 @@ case "$DEVICE" in
             -e 's block/platform/msm_sdcc.1/by-name/LTALabel mmcblk1 ' \
             "$@"
         ;;
+    "pyramid")
+        sed -i \
+            -e 's block/platform/msm_sdcc.1/by-name/adsp mmcblk0p19 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/boot mmcblk0p20 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/cache mmcblk0p24 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/devlog mmcblk0p28 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/extra mmcblk0p25 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/misc mmcblk0p32 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/modem_st1 mmcblk0p26 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/modem_st2 mmcblk0p27 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/pdata mmcblk0p30 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/radio mmcblk0p17 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/radio_config mmcblk0p18 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/recovery mmcblk0p21 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/system mmcblk0p22 ' \
+            -e 's block/platform/msm_sdcc.1/by-name/userdata mmcblk0p23 ' \
+            "$@"
+        ;;
     *)
 	cat <<EOF
 
