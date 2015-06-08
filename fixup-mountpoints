@@ -129,6 +129,7 @@ case "$DEVICE" in
             -e 's block/platform/msm_sdcc.1/by-name/recovery mmcblk0p21 ' \
             -e 's block/platform/msm_sdcc.1/by-name/system mmcblk0p22 ' \
             -e 's block/platform/msm_sdcc.1/by-name/userdata mmcblk0p23 ' \
+            -e 's /block/ / ' \
             "$@"
         ;;
     *)
