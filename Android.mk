@@ -23,8 +23,8 @@ HYBRIS_PATH:=$(LOCAL_PATH)
 # image specific kernel COMMANDLINE vars is provided but whether it
 # works or not is down to your bootloader.
 
-HYBRIS_BOOTIMG_COMMANDLINE :=
-HYBRIS_RECOVERYIMG_COMMANDLINE := bootmode=debug
+HYBRIS_BOOTIMG_COMMANDLINE := selinux=0 firmware_class.path=/system/etc/firmware
+HYBRIS_RECOVERYIMG_COMMANDLINE := bootmode=debug selinux=0 firmware_class.path=/system/etc/firmware
 HYBRIS_BOOTLOGO :=
 # BOOT
 HYBRIS_B_DEFAULT_OS := sailfishos
@@ -45,24 +45,10 @@ HYBRIS_FIXUP_MOUNTS := $(LOCAL_PATH)/fixup-mountpoints
 # TARGET_VENDOR := $(shell echo $(PRODUCT_MANUFACTURER) | tr '[:upper:]' '[:lower:]')
 # but Cyanogenmod seems to use device/*/$(TARGET_DEVICE) in config.mk so we will too.
 HYBRIS_FSTABS := $(shell find device/*/$(TARGET_DEVICE) -name *fstab* | grep -v goldfish)
-# If fstab files were not found from primary device repo then they might be in
-# some other device repo so try to search for them first in device/PRODUCT_MANUFACTURER. 
-# In many cases PRODUCT_MANUFACTURER is the short vendor name used in folder names.
-ifeq "$(HYBRIS_FSTABS)" ""
-TARGET_VENDOR := "$(shell echo $(PRODUCT_MANUFACTURER) | tr '[:upper:]' '[:lower:]')"
-HYBRIS_FSTABS := $(shell find device/$(TARGET_VENDOR) -name *fstab* | grep -v goldfish)
-endif
-# Some devices devices have the short vendor name in PRODUCT_BRAND so try to
-# search from device/PRODUCT_BRAND if fstab files are still not found.
-ifeq "$(HYBRIS_FSTABS)" ""
-TARGET_VENDOR := "$(shell echo $(PRODUCT_BRAND) | tr '[:upper:]' '[:lower:]')"
-HYBRIS_FSTABS := $(shell find device/$(TARGET_VENDOR) -name *fstab* | grep -v goldfish)
-endif
 
-# Get the unique /dev field(s) from the line(s) containing the fs mount point
-# Note the perl one-liner uses double-$ as per Makefile syntax
-HYBRIS_BOOT_PART := $(shell /usr/bin/perl -w -e '$$fs=shift; if ($$ARGV[0]) { while (<>) { next unless /^$$fs\s|\s$$fs\s/;for (split) {next unless m(^/dev); print "$$_\n"; }}} else { print "ERROR: *fstab* not found\n";}' /boot $(HYBRIS_FSTABS) | sort -u)
-HYBRIS_DATA_PART := $(shell /usr/bin/perl -w -e '$$fs=shift; if ($$ARGV[0]) { while (<>) { next unless /^$$fs\s|\s$$fs\s/;for (split) {next unless m(^/dev); print "$$_\n"; }}} else { print "ERROR: *fstab* not found\n";}' /data $(HYBRIS_FSTABS) | sort -u)
+# Note: the following is not upstreamable ;)
+HYBRIS_BOOT_PART := /dev/block/platform/msm_sdcc.1/by-name/boot
+HYBRIS_DATA_PART := /dev/block/platform/msm_sdcc.1/by-name/userdata
 
 $(warning ********************* /boot appears to live on $(HYBRIS_BOOT_PART))
 $(warning ********************* /data appears to live on $(HYBRIS_DATA_PART))
@@ -72,18 +58,16 @@ $(error There should be a one and only one device entry for HYBRIS_BOOT_PART and
 endif
 
 # Command used to make the image
-MKBOOTIMG := mkbootimg
+MKBOOTIMG := mkqcdtbootimg
 BB_STATIC := $(PRODUCT_OUT)/utilities/busybox
+INSTALLED_DTIMAGE_TARGET := $(PRODUCT_OUT)/dtbs
+
 
 ifneq ($(strip $(TARGET_NO_KERNEL)),true)
   INSTALLED_KERNEL_TARGET := $(PRODUCT_OUT)/kernel
 else
   INSTALLED_KERNEL_TARGET :=
 endif
-
-HYBRIS_BOOTIMAGE_ARGS := \
-	$(addprefix --second ,$(INSTALLED_2NDBOOTLOADER_TARGET)) \
-	--kernel $(INSTALLED_KERNEL_TARGET)
 
 ifdef BOARD_KERNEL_BASE
   HYBRIS_BOOTIMAGE_ARGS += --base $(BOARD_KERNEL_BASE)
@@ -131,7 +115,7 @@ $(LOCAL_BUILT_MODULE): $(INSTALLED_KERNEL_TARGET) $(BOOT_RAMDISK) $(MKBOOTIMG)
 	@echo "Making hybris-boot.img in $(dir $@) using $(INSTALLED_KERNEL_TARGET) $(BOOT_RAMDISK)"
 	@mkdir -p $(dir $@)
 	@rm -rf $@
-	$(hide)$(MKBOOTIMG) --ramdisk $(BOOT_RAMDISK) $(HYBRIS_BOOTIMAGE_ARGS) $(BOARD_MKBOOTIMG_ARGS) --output $@
+	$(MKBOOTIMG) --kernel $(INSTALLED_KERNEL_TARGET) --ramdisk $(BOOT_RAMDISK) $(HYBRIS_BOOTIMAGE_ARGS) $(BOARD_MKBOOTIMG_ARGS) --dt_dir $(INSTALLED_DTIMAGE_TARGET) --dt_version 2 --output $@
 
 $(BOOT_RAMDISK): $(BOOT_RAMDISK_FILES) $(BB_STATIC)
 	@echo "Making initramfs : $@"
@@ -174,7 +158,7 @@ $(LOCAL_BUILT_MODULE): $(INSTALLED_KERNEL_TARGET) $(RECOVERY_RAMDISK) $(MKBOOTIM
 	@echo "Making hybris-recovery.img in $(dir $@) using $(INSTALLED_KERNEL_TARGET) $(RECOVERY_RAMDISK)"
 	@mkdir -p $(dir $@)
 	@rm -rf $@
-	$(hide)$(MKBOOTIMG) --ramdisk $(RECOVERY_RAMDISK) $(HYBRIS_RECOVERYIMAGE_ARGS) $(BOARD_MKRECOVERYIMG_ARGS) --output $@
+	$(MKBOOTIMG) --kernel $(INSTALLED_KERNEL_TARGET) --ramdisk $(RECOVERY_RAMDISK) $(HYBRIS_RECOVERYIMAGE_ARGS) $(BOARD_MKRECOVERYIMG_ARGS) --dt_dir $(INSTALLED_DTIMAGE_TARGET) --dt_version 2 --output $@
 
 $(RECOVERY_RAMDISK): $(RECOVERY_RAMDISK_FILES) $(BB_STATIC)
 	@echo "Making initramfs : $@"
